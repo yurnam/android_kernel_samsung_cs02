@@ -1131,9 +1131,6 @@ static struct i2c_board_info __initdata bsc3_i2c_boardinfo[] =
 
 #endif
 
-
-#ifdef CONFIG_KONA_HEADSET_MULTI_BUTTON
-
 #define HS_IRQ		gpio_to_irq(121)
 #define HSB_IRQ		BCM_INT_ID_AUXMIC_COMP2
 #define HSB_REL_IRQ	BCM_INT_ID_AUXMIC_COMP2_INV
@@ -1185,7 +1182,6 @@ static struct kona_headset_pd hawaii_headset_data = {
 	.button_adc_values_high = hawaii_button_adc_values_2_1,
 	.ldo_id = "audldo_uc",
 };
-#endif /* CONFIG_KONA_HEADSET_MULTI_BUTTON */
 
 #ifdef CONFIG_DMAC_PL330
 static struct kona_pl330_data hawaii_pl330_pdata =	{

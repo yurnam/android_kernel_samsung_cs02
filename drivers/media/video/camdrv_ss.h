@@ -169,6 +169,7 @@ enum camdrv_ss_cam_light {
 	CAM_HIGH_LIGHT,
 };
 
+struct camdrv_ss_state *to_state(struct v4l2_subdev *sd);
 
 struct camdrv_ss_sensor_cap {
 /************************/

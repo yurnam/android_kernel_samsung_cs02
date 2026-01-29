@@ -94,8 +94,6 @@
 #define	FSP_VER_STL3888_D1	(0xE3)
 #define	FSP_VER_STL3888_E0	(0xE4)
 
-#ifdef __KERNEL__
-
 struct fsp_data {
 	unsigned char	ver;		/* hardware version */
 	unsigned char	rev;		/* hardware revison */
@@ -115,7 +113,7 @@ struct fsp_data {
 extern int fsp_detect(struct psmouse *psmouse, bool set_properties);
 extern int fsp_init(struct psmouse *psmouse);
 #else
-inline int fsp_detect(struct psmouse *psmouse, bool set_properties)
+static inline int fsp_detect(struct psmouse *psmouse, bool set_properties)
 {
 	return -ENOSYS;
 }
@@ -124,7 +122,5 @@ inline int fsp_init(struct psmouse *psmouse)
 	return -ENOSYS;
 }
 #endif
-
-#endif	/* __KERNEL__ */
 
 #endif	/* !__SENTELIC_H */
