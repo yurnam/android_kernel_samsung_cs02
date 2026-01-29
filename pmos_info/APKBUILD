@@ -1,0 +1,72 @@
+# Reference: <https://postmarketos.org/vendorkernel>
+# Kernel config based on: arch/arm/configs/bcm21664_hawaii_ss_cs02_rev02_defconfig
+
+pkgname=linux-samsung-cs02
+pkgver=3.4.5
+pkgrel=0
+pkgdesc="Samsung Galaxy Core Plus kernel fork"
+arch="armv7"
+_carch="arm"
+_flavor="samsung-cs02"
+url="https://kernel.org"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps pmb:cross-native"
+makedepends="perl sed installkernel bash gmp-dev bc linux-headers elfutils-dev devicepkg-dev xz gcc6"
+
+# Compiler: GCC 6 (doesn't boot when compiled with newer versions than GCC 9)
+if [ "${CC:0:5}" != "gcc6-" ]; then
+	CC="gcc6-$CC"
+	CROSS_COMPILE="gcc6-$CROSS_COMPILE"
+fi
+
+# Source
+_repository="android_kernel_samsung_cs02"
+_commit="cm-13.0"
+_config="config-$_flavor.$arch"
+source="
+	$pkgname-$_commit.tar.gz::https://github.com/SiniTurk/$_repository/archive/$_commit.tar.gz
+	$_config
+	00_return_address.patch
+	01_kona_headset_multi_button.patch
+	02_patch_fsp_detect.patch
+	03_patch_lifebook_detect.patch
+	04_patch_camdrv_s5k4ecgx.patch
+	05_patch_camdrv_ss_sr030pc50.patch
+"
+builddir="$srcdir/$_repository-$_commit"
+_outdir="kernel_out"
+
+prepare() {
+	default_prepare
+	. downstreamkernel_prepare
+}
+
+build() {
+	unset LDFLAGS
+	make O="$_outdir" ARCH="$_carch" CC="${CC:-gcc}" \
+		CFLAGS_MODULE=-fno-pic \
+		LDFLAGS_MODULE=--strip-debug \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS"
+}
+
+package() {
+	downstreamkernel_package "$builddir" "$pkgdir" "$_carch" "$_flavor" "$_outdir"
+
+	# Modules
+	unset LDFLAGS
+	make O="$_outdir" ARCH="$_carch" CC="${CC:-gcc}" \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1))-postmarketOS" \
+		CFLAGS_MODULE=-fno-pic \
+		LDFLAGS_MODULE=--strip-debug \
+		INSTALL_MOD_PATH="$pkgdir" INSTALL_MOD_STRIP=1 \
+		modules_install
+}
+
+sha512sums="daa4d13a10498f3e3ac4ed1bfe03b43ebe0f87a519bfe3037c2f1d7768eb992bfffdc85f79b007b9267aaac3d493feac5b7c149e6d52c4a2415ced7baf0b8eef  linux-samsung-cs02-cm-13.0.tar.gz
+aa9d507f1436d9ce1fbf8d227f4ae445602d942fe1f27a401d86e589e4c5c562787f60691a2e8bd7028853be908cb9f81a91a1b3838c41cf09ac844dae1e3292  config-samsung-cs02.armv7
+79de0af16a8658bb489960dc9d45ee26523668c9e8592320fba9a4c830d72fb7d96093473470e152ab41b54546d3b1e09d94d0b26fbcfc229c9746f27ba44632  00_return_address.patch
+34b0ce39e41e7aded75c9283fc0a627bbaa681cf8055e5aed8dd823ce907cc2379e461de378cccf8dd9275a98851f540d1f447226050453d03ea59dc449f9162  01_kona_headset_multi_button.patch
+6ed1ae8f7cab07973a5c7765a4cbfe7bcf91384581687d10a9fe3903d5a195eec840a691fc79b4ba5947b481d72446fec63634756926a0295369243e1520c364  02_patch_fsp_detect.patch
+36418ec3d31d1d6d9915afcf3d38d4549aeeb49c3825414b51b67db7a1ab6482f22d2723da3b258b671956809949278a51f6507df9b0052aec0bd0c59f56919a  03_patch_lifebook_detect.patch
+1d9e33fa399349b7aefa7fa576e6802bc22c7423cd1189f454e7b79408d3dcfb5cb3b26fa3485ab568de3d64136740d8cc055c7d11ed9b25e203a0af035fd07a  04_patch_camdrv_s5k4ecgx.patch
+4e88c87fe8cccb45d3290f9b1cd8f88296e22e106ee13db6142d4a1003b77679ba5f96034f5d74e06c0de3e224f55b23f6395071e46c1b61fc2af7c572f91786  05_patch_camdrv_ss_sr030pc50.patch"
